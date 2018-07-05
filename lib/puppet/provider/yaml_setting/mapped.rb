@@ -105,12 +105,18 @@ Puppet::Type.type(:yaml_setting).provide(:mapped) do
     #   - non-existent files
     yaml = (File.exists?(filename) ? YAML.load_file(filename) : {}) || {}
 
+    if Gem::Version.new(RUBY_ENGINE_VERSION) >= Gem::Version.new('2.4')
+      numType = Integer
+    else
+      numType = Fixnum
+    end
+
     properties_hashes = hash_to_properties(yaml)
     properties_hashes.map! do |resource|
       resource[:target] = filename
       resource[:name]   = "#{resource[:target].to_s}:#{resource[:key].to_s}"
       resource[:type]   = case resource[:value]
-      when Fixnum
+      when numType
         'integer'
       when Symbol
         'symbol'
